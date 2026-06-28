@@ -1,0 +1,270 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  GUARD
+  HOST
+  ADMIN
+  SECURITY_HEAD
+  LEADERSHIP
+  IT_ADMIN
+}
+
+enum VisitStatus {
+  PENDING
+  APPROVED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+  EXPIRED
+  DENIED
+}
+
+enum VisitType {
+  PRE_APPROVED
+  WALK_IN
+  RECURRING
+}
+
+enum VisitorCategory {
+  PARENT
+  ALUMNI
+  RECRUITER
+  GUEST_SPEAKER
+  VENDOR
+  DELIVERY
+  MAINTENANCE
+  INTERVIEW_CANDIDATE
+  EXEC_ED
+  PROSPECTIVE_STUDENT
+  GOVERNMENT
+  OTHER
+}
+
+enum Zone {
+  MAIN_CAMPUS
+  ACADEMIC_BLOCK
+  PLACEMENT_BLOCK
+  HOSTEL
+  FACULTY_RESIDENCE
+  EXEC_ED_GUEST_HOUSE
+  RECEIVING_AREA
+  AUDITORIUM
+}
+
+enum IncidentSeverity {
+  P0
+  P1
+  P2
+  P3
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  phone     String?
+  role      Role
+  isActive  Boolean  @default(true)
+  gateId    String?
+  gate      Gate?    @relation(fields: [gateId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hostedVisits    Visit[]         @relation("HostVisits")
+  guardClearances Visit[]         @relation("GuardClearances")
+  blacklistEntries Blacklist[]
+  auditLogs       AuditLog[]
+  incidents       Incident[]
+  overrideLogs    OverrideLog[]
+  recurringPasses RecurringPass[]
+  notifications   Notification[]
+}
+
+model Gate {
+  id            String   @id @default(uuid())
+  name          String
+  location      String
+  allowedZones  String   @default("MAIN_CAMPUS")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  guards User[]
+  visits Visit[]
+}
+
+model Visitor {
+  id         String   @id @default(uuid())
+  name       String
+  mobile     String
+  idType     String?
+  idLastFour String?
+  photoUrl   String?
+  createdAt  DateTime @default(now())
+
+  visits          Visit[]
+  recurringPasses RecurringPass[]
+}
+
+model Visit {
+  id            String          @id @default(uuid())
+  visitorId     String
+  visitor       Visitor         @relation(fields: [visitorId], references: [id])
+  hostId        String?
+  host          User?           @relation("HostVisits", fields: [hostId], references: [id])
+  guardId       String?
+  guard         User?           @relation("GuardClearances", fields: [guardId], references: [id])
+  gateId        String?
+  gate          Gate?           @relation(fields: [gateId], references: [id])
+  purpose       String
+  category      VisitorCategory @default(OTHER)
+  zone          Zone            @default(MAIN_CAMPUS)
+  visitType     VisitType       @default(PRE_APPROVED)
+  status        VisitStatus     @default(PENDING)
+  scheduledAt   DateTime
+  windowStart   DateTime
+  windowEnd     DateTime
+  qrToken       String          @unique
+  qrUsed        Boolean         @default(false)
+  qrUsedAt      DateTime?
+  entryAt       DateTime?
+  exitAt        DateTime?
+  language      String          @default("en")
+  consentGiven  Boolean         @default(false)
+  consentMethod String?
+  isMultiDay    Boolean         @default(false)
+  validUntil    DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  consentRecords ConsentRecord[]
+  overrideLogs   OverrideLog[]
+}
+
+model RecurringPass {
+  id                String   @id @default(uuid())
+  passToken         String   @unique
+  visitorId         String
+  visitor           Visitor  @relation(fields: [visitorId], references: [id])
+  zone              Zone     @default(MAIN_CAMPUS)
+  validFrom         DateTime
+  validUntil        DateTime
+  shiftStart        String?
+  shiftEnd          String?
+  purpose           String
+  biometricEnrolled Boolean  @default(false)
+  isActive          Boolean  @default(true)
+  createdById       String
+  createdBy         User     @relation(fields: [createdById], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  entries RecurringPassEntry[]
+}
+
+model RecurringPassEntry {
+  id        String        @id @default(uuid())
+  passId    String
+  pass      RecurringPass   @relation(fields: [passId], references: [id])
+  gateId    String?
+  guardId   String?
+  entryAt   DateTime      @default(now())
+  exitAt    DateTime?
+}
+
+enum NotificationChannel {
+  PUSH
+  SMS
+  WHATSAPP
+  EMAIL
+}
+
+model Notification {
+  id        String              @id @default(uuid())
+  userId    String
+  user      User                @relation(fields: [userId], references: [id])
+  channel   NotificationChannel @default(PUSH)
+  event     String
+  title     String
+  body      String
+  visitId   String?
+  read      Boolean             @default(false)
+  createdAt DateTime            @default(now())
+}
+
+model Blacklist {
+  id         String    @id @default(uuid())
+  name       String
+  mobile     String?
+  idPartial  String?
+  photoUrl   String?
+  reason     String
+  startDate  DateTime  @default(now())
+  endDate    DateTime?
+  isActive   Boolean   @default(true)
+  createdById String
+  createdBy  User      @relation(fields: [createdById], references: [id])
+  createdAt  DateTime  @default(now())
+}
+
+model ConsentRecord {
+  id        String   @id @default(uuid())
+  visitId   String
+  visit     Visit    @relation(fields: [visitId], references: [id])
+  language  String
+  method    String
+  guardId   String?
+  timestamp DateTime @default(now())
+}
+
+model OverrideLog {
+  id        String   @id @default(uuid())
+  visitId   String
+  visit     Visit    @relation(fields: [visitId], references: [id])
+  guardId   String
+  guard     User     @relation(fields: [guardId], references: [id])
+  reason    String
+  notes     String?
+  timestamp DateTime @default(now())
+}
+
+model Incident {
+  id          String           @id @default(uuid())
+  severity    IncidentSeverity
+  title       String
+  description String?
+  gateId      String?
+  guardId     String?
+  guard       User?            @relation(fields: [guardId], references: [id])
+  visitId     String?
+  resolved    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  details   String?
+  timestamp DateTime @default(now())
+}
+
+model DataSubjectRequest {
+  id          String   @id @default(uuid())
+  mobile      String
+  requestType String
+  status      String   @default("OPEN")
+  referenceId String   @unique
+  dueDate     DateTime
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+}

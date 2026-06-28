@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-iiml-navy: #1a2744;
+  --color-iiml-gold: #c9a227;
+  --color-iiml-cream: #f8f6f1;
+  --color-iiml-green: #1e7a4c;
+  --color-iiml-red: #c0392b;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+*, *::before, *::after {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  color: #1a1a2e;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(26,39,68,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 100%, rgba(201,162,39,0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 75% 15%, rgba(30,122,76,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 40% at 25% 85%, rgba(100,120,200,0.06) 0%, transparent 50%),
+    #e8ecf4;
+  background-attachment: fixed;
+}
+
+/* Glass card surface utility */
+.glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+.glass-dark {
+  background: rgba(26, 39, 68, 0.82);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Subtle inner light on inputs / interactive glass */
+.glass-input {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+  transition: all 0.2s ease;
+}
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(201, 162, 39, 0.55);
+  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.12);
+  outline: none;
+}
+
+/* Button press micro-interaction */
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
