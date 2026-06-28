@@ -1,6 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import { DEFAULT_GATE_ZONES } from '../src/lib/zoneUtils.js';
 import crypto from 'crypto';
+
+const DEFAULT_GATE_ZONES = {
+  'Main Entrance': ['MAIN_CAMPUS', 'ACADEMIC_BLOCK', 'PLACEMENT_BLOCK', 'AUDITORIUM', 'RECEIVING_AREA'],
+  'Hostel Gate': ['HOSTEL', 'MAIN_CAMPUS'],
+  'Faculty Gate': ['FACULTY_RESIDENCE', 'MAIN_CAMPUS'],
+  'Exec-Ed Gate': ['EXEC_ED_GUEST_HOUSE', 'ACADEMIC_BLOCK', 'MAIN_CAMPUS'],
+};
 
 const prisma = new PrismaClient();
 
@@ -29,6 +35,11 @@ function window30(scheduled) {
 }
 
 async function main() {
+  const existingUsers = await prisma.user.count();
+  if (existingUsers > 0) {
+    console.log('  ✓ Database already seeded — skipping.');
+    return;
+  }
 
   // ── 1. GATES ──────────────────────────────────────────────────────────────
   const gateRows = [
