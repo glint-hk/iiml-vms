@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "IIM Lucknow Visitor Management System — Enterprise MVP",
   "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "workspaces": [
     "client",
     "server"

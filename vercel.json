@@ -1,9 +1,16 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build --workspace=client && cd server && npx prisma generate && npx prisma db push && node prisma/seed.js",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build --workspace=client && (cd server && npx prisma generate && npx prisma db push && node prisma/seed.js)",
   "outputDirectory": "client/dist",
   "framework": null,
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index.js" }
+    { "source": "/api/:path*", "destination": "/api/index.js" },
+    { "source": "/((?!api).*)", "destination": "/index.html" }
   ]
 }
